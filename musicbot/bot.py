@@ -827,6 +827,19 @@ class MusicBot(discord.Client):
 
         return Response(html.unescape(data["value"]["joke"].replace(" faeweegeherwefwe", "", 1)))
 
+    async def cmd_pet(self, user_mentions):
+        """
+        Usage:
+            {command_prefix}pet [@user]
+
+        Pets an user.
+        """
+
+        if not user_mentions:
+            raise exceptions.CommandError("No users listed.", expire_in=20)
+
+        return Response("Who's a good boy? Yeah, right you are, " + user_mentions[0].name + "! :)")
+
     async def cmd_blacklist(self, message, user_mentions, option, something):
         """
         Usage:
