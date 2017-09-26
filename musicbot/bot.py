@@ -8,6 +8,9 @@ import aiohttp
 import discord
 import asyncio
 import traceback
+import requests
+import json
+import html
 
 from discord import utils
 from discord.object import Object
@@ -761,6 +764,68 @@ class MusicBot(discord.Client):
             helpmsg += "https://github.com/SexualRhinoceros/MusicBot/wiki/Commands-list"
 
             return Response(helpmsg, reply=True, delete_after=60)
+
+    async def cmd_mum(self, user_mentions):
+        """
+        Usage:
+            {command_prefix}mum [@user]
+
+        Tells a mum joke.
+        """
+
+        content = requests.get("http://api.yomomma.info/").content
+        data = json.loads(content)
+
+        joke = data["joke"]
+        if user_mentions:
+            joke = joke.replace("Yo", user_mentions[0].name + "'s", 1)
+
+        return Response(joke)
+
+    async def cmd_catfact(self):
+        """
+        Usage:
+            {command_prefix}catfact
+
+        Tells a cat fact.
+        """
+
+        content = requests.get("https://catfact.ninja/fact").content
+        data = json.loads(content)
+
+        return Response(data["fact"])
+
+    async def cmd_dadjoke(self):
+        """
+        Usage:
+            {command_prefix}dadjoke
+
+        Tells a dad joke.
+        """
+
+        s = requests.Session()
+        s.headers.update({"Accept": "application/json"})
+        r = s.get("https://icanhazdadjoke.com/")
+
+        data = json.loads(r.content)
+        return Response(data["joke"])
+
+    async def cmd_chucknorris(self, user_mentions):
+        """
+        Usage:
+            {command_prefix}mum [@user]
+
+        Tells a Chuck Norris fact.
+        """
+
+        url = "http://api.icndb.com/jokes/random"
+        if user_mentions:
+            url += "?firstName=" + user_mentions[0].name + "&lastName=faeweegeherwefwe"
+
+        content = requests.get(url).content
+        data = json.loads(content)
+
+        return Response(html.unescape(data["value"]["joke"].replace(" faeweegeherwefwe", "", 1)))
 
     async def cmd_blacklist(self, message, user_mentions, option, something):
         """
