@@ -904,6 +904,46 @@ class MusicBot(discord.Client):
 
         return Response(name + ", " + compliment)
 
+    async def cmd_insult(self, author, user_mentions):
+        """
+        Usage:
+            {command_prefix}compliment [@user]
+
+        Insults a person.
+        """
+
+        name = author.name
+        if user_mentions:
+            name = user_mentions[0].name
+
+        content = requests.get("http://foaas.herokuapp.com/operations").content
+        data = json.loads(content)
+
+        while True:
+            insult = choice(data)
+            fields = insult["fields"]
+            breakloop = False
+            for field in fields:
+                if field["name"] != "Name" or field["name"] != "From":
+                    breakloop = True
+                    break
+            if breakloop:
+                break
+
+        url = "http://foaas.herokuapp.com" + insult["url"]
+        for field in fields:
+            if field["name"] == "Name":
+                url = url.replace(":" + field["field"], name)
+            if field["name"] == "From":
+                url = url.replace(":" + field["field"], "bot")
+
+        s = requests.Session()
+        s.headers.update({"Accept": "application/json"})
+        r = s.get(url).content
+        data = json.loads(r)
+
+        return Response(data["message"])
+
     async def cmd_blacklist(self, message, user_mentions, option, something):
         """
         Usage:
