@@ -922,10 +922,12 @@ class MusicBot(discord.Client):
         while True:
             insult = choice(data)
             fields = insult["fields"]
-            breakloop = False
+            if len(fields) == 0:
+                continue
+            breakloop = True
             for field in fields:
-                if field["name"] != "Name" or field["name"] != "From":
-                    breakloop = True
+                if field["name"] != "Name" and field["name"] != "From":
+                    breakloop = False
                     break
             if breakloop:
                 break
