@@ -63,6 +63,7 @@ class Config:
         self.auth = None
 
         self.owner_id = config.get('Permissions', 'OwnerID', fallback=ConfigDefaults.owner_id)
+        self.imgur_id = config.get('Permissions', 'ImgurID', fallback=ConfigDefaults.imgur_id)
         self.command_prefix = config.get('Chat', 'CommandPrefix', fallback=ConfigDefaults.command_prefix)
         self.bound_channels = config.get('Chat', 'BindToChannels', fallback=ConfigDefaults.bound_channels)
         self.autojoin_channels =  config.get('Chat', 'AutojoinChannels', fallback=ConfigDefaults.autojoin_channels)
@@ -172,6 +173,7 @@ class ConfigDefaults:
     token = None    #
 
     owner_id = None
+    imgur_id = None
     command_prefix = '!'
     bound_channels = set()
     autojoin_channels = set()

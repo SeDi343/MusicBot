@@ -840,6 +840,48 @@ class MusicBot(discord.Client):
 
         return Response("Who's a good boy? Yeah, right you are, " + user_mentions[0].name + "! :)")
 
+    async def cmd_imgur(self, leftover_args):
+        """
+        Usage:
+            {command_prefix}imgur [number] query
+
+        Searches galleries in imgur.
+        """
+
+        if self.config.imgur_id is None:
+            raise exceptions.CommandError("ImgurID is not set!")
+
+        page = 0
+        def argcheck():
+            if not leftover_args:
+                raise exceptions.CommandError(
+                    "Please specify a search query.\n%s" % dedent(
+                        self.cmd_imgur.__doc__.format(command_prefix=self.config.command_prefix)),
+                    expire_in=60
+                )
+
+        argcheck()
+
+        if leftover_args[0].isdigit():
+            page = int(leftover_args.pop(0)) - 1
+            if page < 0:
+                page = 0
+            argcheck()
+
+        url = "https://api.imgur.com/3/gallery/search/top/{}?q=".format(page)
+        for key in leftover_args:
+            url += key + "+"
+        url = url[:-1]
+        url = html.escape(url)
+
+        s = requests.Session()
+        s.headers.update({"Authorization": "Client-ID " + self.config.imgur_id})
+        r = s.get(url)
+        data = json.loads(r.content)
+        selection = data["data"][randint(0, len(data["data"]))]
+
+        return Response(selection["title"] + "\n" + selection["link"])
+
     async def cmd_blacklist(self, message, user_mentions, option, something):
         """
         Usage:
