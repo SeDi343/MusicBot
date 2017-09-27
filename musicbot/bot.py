@@ -22,7 +22,7 @@ from io import BytesIO
 from functools import wraps
 from textwrap import dedent
 from datetime import timedelta
-from random import shuffle, randint
+from random import choice, shuffle, randint
 from collections import defaultdict
 
 from musicbot.playlist import Playlist
@@ -761,7 +761,7 @@ class MusicBot(discord.Client):
 
             helpmsg += ", ".join(commands)
             helpmsg += "```"
-            helpmsg += "https://github.com/SexualRhinoceros/MusicBot/wiki/Commands-list"
+            helpmsg += "https://github.com/Grarak/MusicBot"
 
             return Response(helpmsg, reply=True, delete_after=60)
 
@@ -773,14 +773,15 @@ class MusicBot(discord.Client):
         Tells a mum joke.
         """
 
-        content = requests.get("http://api.yomomma.info/").content
-        data = json.loads(content)
+        content = requests.get("https://raw.githubusercontent.com/rdegges/yomomma-api/master/jokes.txt").content
+        jokes = content.splitlines()
 
-        joke = data["joke"]
+        joke = choice(jokes).strip().decode("utf-8")
         if user_mentions:
             joke = joke.replace("Yo", user_mentions[0].name + "'s", 1)
+            joke = joke.replace("yo", user_mentions[0].name + "'s", 1)
 
-        return Response(joke)
+        return Response(html.unescape(joke))
 
     async def cmd_catfact(self):
         """
@@ -827,7 +828,7 @@ class MusicBot(discord.Client):
 
         return Response(html.unescape(data["value"]["joke"].replace(" faeweegeherwefwe", "", 1)))
 
-    async def cmd_pet(self, user_mentions):
+    async def cmd_pet(self, author, user_mentions):
         """
         Usage:
             {command_prefix}pet [@user]
@@ -835,10 +836,11 @@ class MusicBot(discord.Client):
         Pets an user.
         """
 
-        if not user_mentions:
-            raise exceptions.CommandError("No users listed.", expire_in=20)
+        name = author.name
+        if user_mentions:
+            name = user_mentions[0].name
 
-        return Response("Who's a good boy? Yeah, right you are, " + user_mentions[0].name + "! :)")
+        return Response("Who's a good boy? Yeah, right you are, " + name + "! :)")
 
     async def cmd_imgur(self, leftover_args):
         """
@@ -878,9 +880,29 @@ class MusicBot(discord.Client):
         s.headers.update({"Authorization": "Client-ID " + self.config.imgur_id})
         r = s.get(url)
         data = json.loads(r.content)
-        selection = data["data"][randint(0, len(data["data"]))]
+        selection = choice(data["data"])
 
         return Response(selection["title"] + "\n" + selection["link"])
+
+    async def cmd_compliment(self, author, user_mentions):
+        """
+        Usage:
+            {command_prefix}compliment [@user]
+
+        Tells a compliment.
+        """
+
+        name = author.name
+        if user_mentions:
+            name = user_mentions[0].name
+
+        content = requests.get("https://spreadsheets.google.com/feeds/list/1eEa2ra2yHBXVZ_ctH4J15tFSGEu-VTSunsrvaCAV598/od6/public/values?alt=json").content
+        data = json.loads(content)
+        selection = choice(data["feed"]["entry"])
+        compliment = selection["title"]["$t"]
+        compliment = compliment[0].lower() + compliment[1:]
+
+        return Response(name + ", " + compliment)
 
     async def cmd_blacklist(self, message, user_mentions, option, something):
         """
